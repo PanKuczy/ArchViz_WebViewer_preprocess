@@ -1,6 +1,6 @@
-# AVWV Preprocess - Refactored Architecture
+# AVWV Preprocess Architecture
 
-This document describes the refactored modular architecture of the AVWV Preprocess module for handling VRay object ID color extraction and polygon processing.
+This document describes the modular architecture of the AVWV Preprocess module for handling VRay object ID color extraction and polygon processing.
 
 ## Overview
 

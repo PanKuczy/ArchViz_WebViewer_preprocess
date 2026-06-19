@@ -4,11 +4,12 @@ This document describes the modular architecture of the AVWV Preprocess module f
 
 ## Overview
 
-The project is organized into three main components:
+The project is organized into four main components:
 
 1. **Core Utilities** - Shared functionality for image and JSON processing
 2. **Colors from VRay ObjID** - Extract colors from VRay color charts (with batch support)
 3. **ObjID to Polygon** - Convert object ID masks to polygon data (with batch support)
+4. **Image Converter** - Converts standard image formats (JPG, PNG, TIFF) to modern web formats (WebP, AVIF).
 
 ## Folder Structure
 
@@ -29,9 +30,14 @@ src/avwv_preprocess/
 │   ├── pipeline.py       # Batch processing pipeline
 │   └── objID_to_polygon.py  # Public API
 │
+├── image_converter/
+│   ├── processor.py      # Core image conversion logic
+│   └── pipeline.py       # Batch processing pipeline
+│
 └── cli/
     ├── colors_from_vrayobjid.py      # CLI for color extraction
-    └── objid_to_polygon_cli.py       # CLI for polygon extraction
+    ├── objid_to_polygon_cli.py       # CLI for polygon extraction
+    └── image_converter_cli.py        # CLI for image conversion
 ```
 
 ## Module Design
@@ -162,6 +168,31 @@ all_polygons = objID_to_polygon.extract_batch_merged(
 # Returns: {'frame_001': {'0001': [...], ...}, 'frame_002': {...}, ...}
 ```
 
+### 3. Convert Images to WebP/AVIF
+
+#### Single Image
+```python
+from avwv_preprocess.image_converter import pipeline
+
+pipeline.process_single_image(
+    "input/image.png",
+    "output/image.webp",
+    quality=85,
+    output_format='webp'
+)
+```
+
+#### Batch Conversion
+```python
+pipeline.process_batch(
+    "input_directory/",
+    "output_directory/",
+    quality=90,
+    output_format='avif',
+    remove_string="_source_file"
+)
+```
+
 ## Command Line Interface
 
 ### Colors from VRay ObjID
@@ -227,6 +258,27 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/vrayobjid_colors_all_map.json \
     -m --merge-output data/output/polygons/all_frames.json \
     --remove-string ".VRayObjectID"
+```
+
+### Image Converter
+
+```bash
+# Convert a single image to WebP with quality 85
+python -m avwv_preprocess.cli.image_converter_cli single \
+    data/input/beauty_pass/WebViewer_t1-1_0001.RGB_color.png \
+    data/output/beauty_pass_WebP/image.webp \
+    --quality 85 \
+    --format webp
+
+
+# Batch convert a directory to WebP, removing ".RGB_color" from filenames
+python -m avwv_preprocess.cli.image_converter_cli batch \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\RGB_color" \
+    data/output/beauty_pass_WebP/v1/ \
+    --quality 85 \
+    --format webp \
+    --remove-string ".RGB_color"
+
 ```
 
 ## Advanced Configuration

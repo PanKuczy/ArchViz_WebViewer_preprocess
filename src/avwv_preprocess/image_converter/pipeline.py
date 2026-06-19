@@ -1,0 +1,65 @@
+"""Pipeline for single and batch image conversion"""
+
+import os
+from pathlib import Path
+from .processor import convert_image
+
+
+def process_single_image(input_path, output_path, quality=80, output_format='webp'):
+    """Processes a single image.
+
+    Args:
+        input_path (str): Path to the input image.
+        output_path (str): Path to save the converted image.
+        quality (int): Compression quality.
+        output_format (str): 'webp' or 'avif'.
+    """
+    print(f"Converting {input_path} to {output_path}...")
+    convert_image(input_path, output_path, quality, output_format)
+    print("✓ Conversion successful.")
+
+
+def process_batch(input_dir, output_dir, quality=80, output_format='webp', 
+                  remove_string=None, input_patterns=None):
+    """Processes a batch of images.
+
+    Args:
+        input_dir (str): Directory containing images to convert.
+        output_dir (str): Directory to save converted images.
+        quality (int): Compression quality.
+        output_format (str): 'webp' or 'avif'.
+        remove_string (str, optional): String to remove from output filenames.
+        input_patterns (list, optional): List of file patterns to search for. 
+                                         Defaults to ['*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff'].
+    """
+    if input_patterns is None:
+        input_patterns = ['*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff']
+
+    os.makedirs(output_dir, exist_ok=True)
+    
+    input_path_obj = Path(input_dir)
+    image_files = []
+    for pattern in input_patterns:
+        image_files.extend(input_path_obj.glob(pattern))
+
+    if not image_files:
+        print(f"No images found in {input_dir} matching patterns: {input_patterns}")
+        return
+
+    print(f"Found {len(image_files)} images to convert.")
+    
+    for image_file in image_files:
+        try:
+            stem = image_file.stem
+            if remove_string:
+                stem = stem.replace(remove_string, '')
+            
+            output_filename = f"{stem}.{output_format.lower()}"
+            output_path = os.path.join(output_dir, output_filename)
+            
+            convert_image(str(image_file), output_path, quality, output_format)
+            
+        except Exception as e:
+            print(f"✗ Failed to convert {image_file.name}: {e}")
+
+    print("\nBatch conversion complete.")

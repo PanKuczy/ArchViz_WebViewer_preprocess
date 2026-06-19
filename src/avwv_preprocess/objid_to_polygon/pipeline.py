@@ -44,7 +44,7 @@ def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tol
 
 
 def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png', 
-                  epsilon=2.0, tolerance=0, largest_only=False):
+                  epsilon=2.0, tolerance=0, largest_only=False, remove_string=None):
     """Batch process multiple VRay object ID mask images
     
     Args:
@@ -55,6 +55,7 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
         largest_only: Extract only largest polygon per color
+        remove_string: String to remove from output filenames
         
     Returns:
         Dictionary mapping image filenames to their extracted polygons
@@ -84,7 +85,10 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
     for image_file in image_files:
         try:
             # Create output filename
-            output_filename = image_file.stem + '.json'
+            stem = image_file.stem
+            if remove_string:
+                stem = stem.replace(remove_string, '')
+            output_filename = stem + '.json'
             output_path = os.path.join(output_dir, output_filename)
             
             # Process the image
@@ -103,7 +107,7 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
 
 
 def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png',
-                         epsilon=2.0, tolerance=0, largest_only=False):
+                         epsilon=2.0, tolerance=0, largest_only=False, remove_string=None):
     """Batch process and merge results into a single JSON file
     
     Args:
@@ -114,6 +118,7 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
         largest_only: Extract only largest polygon per color
+        remove_string: String to remove from the frame identifier (stem)
         
     Returns:
         Merged dictionary of all extracted polygons
@@ -135,6 +140,8 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
             )
             # Merge with a frame identifier
             frame_id = image_file.stem
+            if remove_string:
+                frame_id = frame_id.replace(remove_string, '')
             all_polygons[frame_id] = polygons
             print(f"  - {image_file.name}: {len(polygons)} polygons")
         except Exception as e:

@@ -128,9 +128,9 @@ from avwv_preprocess.objid_to_polygon import objID_to_polygon
 
 # Extract polygons from mask using color map
 polygons = objID_to_polygon.extract_from_single_mask(
-    mask_path="mask.png",
+    mask_path="data/input/masks/WebViewer_t1-1_0001.VRayObjectID.png",
     color_map="data/vrayobjid_colors_all_map.json",  # Can be path or dict
-    output_path="polygons.json",
+    output_path="data/output/polygons/WebViewer_t1-1_0001.json",
     epsilon=2.0,           # Polygon simplification
     tolerance=0            # Color matching tolerance
 )
@@ -194,16 +194,16 @@ python -m avwv_preprocess.cli.colors_from_vrayobjid batch \
 ```bash
 # Process single mask
 python -m avwv_preprocess.cli.objid_to_polygon_cli single \
-    data/input/masks/WebViewer_t1-1_0002.VRayObjectID.png \
+    data/input/masks/WebViewer_t1-1_0001.VRayObjectID.png \
     data/vrayobjid_colors_all_map.json \
-    -o data/output/polygons.json \
+    -o data/output/polygons/WebViewer_t1-1_0001.json \
     --epsilon 2.0 \
     --tolerance 0
 
 python -m avwv_preprocess.cli.objid_to_polygon_cli single \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\VRayObjectID\WebViewer_t1-1_0003.VRayObjectID.png" \
     data/vrayobjid_colors_all_map.json \
-    -o data/output/polygons.json \
+    -o data/output/polygons/polygons.json \
     --epsilon 2.0 \
     --tolerance 0
 
@@ -211,19 +211,22 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli single \
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/input/masks/ \
     data/vrayobjid_colors_all_map.json \
-    -o data/output/polygons/
+    -o data/output/polygons/ \
+    --remove-string ".VRayObjectID"
 
 # Batch process separate
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\VRayObjectID" \
     data/vrayobjid_colors_all_map.json \
-    -o data/output/polygons/
+    -o data/output/polygons/v2 \
+    --remove-string ".VRayObjectID"
 
 # Batch process with merge
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/input/masks/ \
     data/vrayobjid_colors_all_map.json \
-    -m --merge-output data/output/polygons/all_frames.json
+    -m --merge-output data/output/polygons/all_frames.json \
+    --remove-string ".VRayObjectID"
 ```
 
 ## Advanced Configuration

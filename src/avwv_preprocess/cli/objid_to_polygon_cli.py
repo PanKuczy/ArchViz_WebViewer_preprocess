@@ -35,6 +35,7 @@ def main():
                              help='Polygon approximation epsilon (default: 2.0)')
     batch_parser.add_argument('-t', '--tolerance', type=int, default=0,
                              help='Color tolerance for matching (default: 0)')
+    batch_parser.add_argument('--remove-string', help='String to remove from output filenames')
     
     args = parser.parse_args()
     
@@ -58,14 +59,16 @@ def main():
                     return 1
                 print(f"Batch processing with merge: {args.input_dir} -> {args.merge_output}")
                 polygons = objID_to_polygon.extract_batch_merged(
-                    args.input_dir, args.color_map, args.merge_output, args.epsilon, args.tolerance
+                    args.input_dir, args.color_map, args.merge_output, 
+                    args.epsilon, args.tolerance, remove_string=args.remove_string
                 )
                 print(f"✓ Processed and merged frames")
             else:
                 output_dir = args.output_dir or args.input_dir
                 print(f"Batch processing: {args.input_dir} -> {output_dir}")
                 results = objID_to_polygon.extract_batch_separate(
-                    args.input_dir, args.color_map, output_dir, args.epsilon, args.tolerance
+                    args.input_dir, args.color_map, output_dir, 
+                    args.epsilon, args.tolerance, remove_string=args.remove_string
                 )
                 print(f"✓ Processed {len(results)} images")
             return 0

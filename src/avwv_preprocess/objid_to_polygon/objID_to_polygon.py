@@ -22,7 +22,7 @@ def extract_from_single_mask(mask_path, color_map, output_path=None, epsilon=2.0
     return process_single_mask(mask_path, color_map, output_path, epsilon, tolerance)
 
 
-def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, tolerance=0):
+def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, tolerance=0, remove_string=None):
     """Extract polygons from multiple mask images, saving each as separate JSON
     
     Args:
@@ -31,15 +31,16 @@ def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, t
         output_dir: Directory to save JSON files (default: same as input_dir)
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
+        remove_string: String to remove from output filenames
         
     Returns:
         Dictionary with results for each image
     """
     return process_batch(input_dir, color_map, output_dir, file_pattern='*.png', 
-                        epsilon=epsilon, tolerance=tolerance)
+                        epsilon=epsilon, tolerance=tolerance, remove_string=remove_string)
 
 
-def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, tolerance=0):
+def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, tolerance=0, remove_string=None):
     """Extract polygons from multiple images, merging into single JSON by frame
     
     Args:
@@ -48,12 +49,13 @@ def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, toleran
         output_path: Path to save the merged JSON output
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
+        remove_string: String to remove from the frame identifier (stem)
         
     Returns:
         Merged dictionary of all polygons organized by frame
     """
     return process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png',
-                               epsilon=epsilon, tolerance=tolerance)
+                               epsilon=epsilon, tolerance=tolerance, remove_string=remove_string)
 
 
 # Example usage for direct execution

@@ -2,7 +2,9 @@
 
 import os
 from pathlib import Path
+from tqdm import tqdm
 from .processor import convert_image
+from ..core.utils import play_bell
 
 
 def process_single_image(input_path, output_path, quality=80, output_format='webp'):
@@ -48,7 +50,7 @@ def process_batch(input_dir, output_dir, quality=80, output_format='webp',
 
     print(f"Found {len(image_files)} images to convert.")
     
-    for image_file in image_files:
+    for image_file in tqdm(image_files, desc="Converting images"):
         try:
             stem = image_file.stem
             if remove_string:
@@ -63,3 +65,4 @@ def process_batch(input_dir, output_dir, quality=80, output_format='webp',
             print(f"✗ Failed to convert {image_file.name}: {e}")
 
     print("\nBatch conversion complete.")
+    play_bell()

@@ -3,9 +3,11 @@
 import os
 from pathlib import Path
 import cv2
+from tqdm import tqdm
 
 from ..core.image_io import load_image
 from ..core.json_io import save_json, load_json
+from ..core.utils import play_bell
 from .processor import extract_polygons_from_mask, extract_largest_polygon_per_color
 
 
@@ -82,7 +84,7 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
     
     print(f"Processing {len(image_files)} mask images from {input_dir}")
     
-    for image_file in image_files:
+    for image_file in tqdm(image_files, desc="Processing masks"):
         try:
             # Create output filename
             stem = image_file.stem
@@ -103,6 +105,7 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
             failed_count += 1
     
     print(f"Completed: {processed_count} successful, {failed_count} failed")
+    play_bell()
     return results
 
 
@@ -133,7 +136,7 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
     
     print(f"Processing {len(image_files)} mask images and merging into single output")
     
-    for image_file in image_files:
+    for image_file in tqdm(image_files, desc="Merging masks"):
         try:
             polygons = process_single_mask(
                 str(image_file), color_map, None, epsilon, tolerance, largest_only
@@ -150,6 +153,7 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
     # Save the merged result
     save_json(all_polygons, output_path)
     print(f"\nSaved {len(all_polygons)} frames to {output_path}")
+    play_bell()
     
     return all_polygons
     

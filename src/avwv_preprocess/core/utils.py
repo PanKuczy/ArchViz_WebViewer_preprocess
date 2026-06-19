@@ -1,4 +1,5 @@
 import numpy as np
+from platform import platform
 
 
 def hex_to_bgr(hex_color):
@@ -43,3 +44,15 @@ def get_color_bounds(bgr_color, tolerance=0):
     lower_bound = np.maximum(bgr - tolerance, 0)
     upper_bound = np.minimum(bgr + tolerance, 255)
     return lower_bound, upper_bound
+
+def play_bell():
+    if "Windows" in platform():
+        try:
+            import winsound
+            winsound.MessageBeep(winsound.MB_OK)
+        except ImportError:
+            # Fallback for Windows versions without winsound
+            print('\a')
+    else:
+        # For macOS, Linux, etc.
+        print('\a')

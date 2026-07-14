@@ -249,8 +249,8 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\VRayObjectID" \
     data/vrayobjid_colors_all_map.json \
-    -o data/output/polygons/v2 \
-    --remove-string ".VRayObjectID"
+    -o data/output/polygons/v3 \
+    --remove-string "_vrayoutput_.VRayObjectID."
 
 # Batch process with merge
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
@@ -274,7 +274,7 @@ python -m avwv_preprocess.cli.image_converter_cli single \
 # Batch convert a directory to WebP, removing ".RGB_color" from filenames
 python -m avwv_preprocess.cli.image_converter_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\RGB_color" \
-    data/output/beauty_pass_WebP/v1/ \
+    data/output/beauty_pass_WebP/v3/ \
     --quality 85 \
     --format webp \
     --remove-string ".RGB_color"

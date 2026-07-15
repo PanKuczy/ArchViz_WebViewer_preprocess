@@ -6,6 +6,7 @@ import cv2
 from tqdm import tqdm
 
 from ..core.image_io import load_image
+from ..core.asset_paths import asset_id, auto_name, find_asset_files
 from ..core.json_io import save_json, load_json
 from ..core.utils import play_bell
 from .processor import extract_polygons_from_mask, extract_largest_polygon_per_color
@@ -46,7 +47,8 @@ def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tol
 
 
 def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png', 
-                  epsilon=2.0, tolerance=0, largest_only=False, remove_string=None):
+                  epsilon=2.0, tolerance=0, largest_only=False, remove_string=None,
+                  auto_names=False):
     """Batch process multiple VRay object ID mask images
     
     Args:
@@ -66,6 +68,28 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
         output_dir = input_dir
     
     os.makedirs(output_dir, exist_ok=True)
+
+    if auto_names:
+        if isinstance(color_map, str):
+            color_map = load_json(color_map)
+        image_files = find_asset_files(input_dir, 'VRayObjectID')
+        results = {}
+        print(f"Found {len(image_files)} VRayObjectID images")
+        for image_file in tqdm(image_files, desc="Processing named masks"):
+            print(f"Processing {image_file.name}", flush=True)
+            output_path = os.path.join(
+                output_dir, asset_id(image_file), 'rotator_polygons',
+                auto_name(image_file, 'json'),
+            )
+            try:
+                results[image_file.name] = process_single_mask(
+                    str(image_file), color_map, output_path, epsilon, tolerance,
+                )
+            except Exception as e:
+                print(f"Error processing {image_file.name}: {e}")
+        print(f"Completed: {len(results)} named masks")
+        play_bell()
+        return results
     
     # Load color map if it's a path
     if isinstance(color_map, str):

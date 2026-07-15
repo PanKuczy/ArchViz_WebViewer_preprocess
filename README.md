@@ -37,7 +37,8 @@ src/avwv_preprocess/
 └── cli/
     ├── colors_from_vrayobjid.py      # CLI for color extraction
     ├── objid_to_polygon_cli.py       # CLI for polygon extraction
-    └── image_converter_cli.py        # CLI for image conversion
+│   ├── image_converter_cli.py        # CLI for image conversion
+│   └── full_asset_process.py         # CLI for combined asset processing
 ```
 
 ## Module Design
@@ -248,7 +249,14 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
 
 # Batch process separate
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
-    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\VRayObjectID" \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\test" \
+    data/vrayobjid_colors_all_map.json \
+    -o data/output/polygons/v4_test \
+    --auto-names
+
+# Batch process separate with auto names
+python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\test\VRayObjectID" \
     data/vrayobjid_colors_all_map.json \
     -o data/output/polygons/v3 \
     --remove-string "_vrayoutput_.VRayObjectID."
@@ -280,6 +288,56 @@ python -m avwv_preprocess.cli.image_converter_cli batch \
     --format webp \
     --remove-string ".RGB_color"
 
+
+
+```
+
+### Full Asset Processing
+
+The `full_asset_process` command processes an asset tree in one run. It searches
+recursively for image files based on their immediate parent folder:
+
+- `RGB_color` images are converted to the selected image format.
+- `VRayObjectID` images are converted to polygon JSON files using the color map.
+
+For each input filename, the asset ID is the text before the first `_` and the
+frame number is the final four digits. Output files use the format
+`<id>_<frame number>.<extension>` and are organized as follows:
+
+```
+<output path>/
+└── <id>/
+    ├── rotator_frames/
+    │   └── <id>_<frame number>.<image format>
+    └── rotator_polygons/
+        └── <id>_<frame number>.json
+```
+
+The color map can be supplied with `--color-map`. When omitted, the command
+looks for `vrayobjid_colors_all_map.json` in the input directory, its parent
+directory, and `data/` in the current working directory.
+
+The existing batch commands also support automatic naming with `--auto-names`:
+
+```bash
+python -m avwv_preprocess.cli.image_converter_cli batch \
+    data/input/ \
+    data/output/ \
+    --format webp \
+    --auto-names
+
+python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
+    data/input/ \
+    data/vrayobjid_colors_all_map.json \
+    -o data/output/ \
+    --auto-names
+
+# Recursively convert RGB_color assets and extract VRayObjectID polygons
+python -m avwv_preprocess.cli.full_asset_process \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\v4" \
+    data/output/v4 \
+    webp \
+    --color-map data/vrayobjid_colors_all_map.json
 ```
 
 ## Advanced Configuration

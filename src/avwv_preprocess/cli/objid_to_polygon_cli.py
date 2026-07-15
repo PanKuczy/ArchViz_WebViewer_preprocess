@@ -36,6 +36,8 @@ def main():
     batch_parser.add_argument('-t', '--tolerance', type=int, default=0,
                              help='Color tolerance for matching (default: 0)')
     batch_parser.add_argument('--remove-string', help='String to remove from output filenames')
+    batch_parser.add_argument('--auto-names', action='store_true',
+                              help='Recursively process VRayObjectID assets using asset names')
     
     args = parser.parse_args()
     
@@ -68,7 +70,8 @@ def main():
                 print(f"Batch processing: {args.input_dir} -> {output_dir}")
                 results = objID_to_polygon.extract_batch_separate(
                     args.input_dir, args.color_map, output_dir, 
-                    args.epsilon, args.tolerance, remove_string=args.remove_string
+                    args.epsilon, args.tolerance, remove_string=args.remove_string,
+                    auto_names=args.auto_names
                 )
                 print(f"✓ Processed {len(results)} images")
             return 0

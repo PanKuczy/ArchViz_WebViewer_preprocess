@@ -22,7 +22,7 @@ def extract_from_single_mask(mask_path, color_map, output_path=None, epsilon=2.0
     return process_single_mask(mask_path, color_map, output_path, epsilon, tolerance)
 
 
-def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, tolerance=0, remove_string=None):
+def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, tolerance=0, remove_string=None, auto_names=False):
     """Extract polygons from multiple mask images, saving each as separate JSON
     
     Args:
@@ -37,7 +37,8 @@ def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, t
         Dictionary with results for each image
     """
     return process_batch(input_dir, color_map, output_dir, file_pattern='*.png', 
-                        epsilon=epsilon, tolerance=tolerance, remove_string=remove_string)
+                        epsilon=epsilon, tolerance=tolerance, remove_string=remove_string,
+                        auto_names=auto_names)
 
 
 def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, tolerance=0, remove_string=None):

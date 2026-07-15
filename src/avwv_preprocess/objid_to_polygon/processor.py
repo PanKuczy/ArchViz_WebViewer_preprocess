@@ -37,9 +37,23 @@ def extract_polygons_from_mask(image, color_to_id_map, epsilon=2.0, tolerance=0)
     image_height, image_width = image.shape[:2]
     results = {}
     found_count = 0
+
+    if tolerance == 0:
+        # Exact matching only needs colors that are actually present in the mask.
+        # This avoids scanning the image once for every unused color in a large map.
+        present_colors = {
+            tuple(color) for color in np.unique(image.reshape(-1, image.shape[2]), axis=0)
+        }
+        colors_to_process = (
+            (unit_id, hex_color)
+            for unit_id, hex_color in color_to_id_map.items()
+            if tuple(hex_to_bgr(hex_color)) in present_colors
+        )
+    else:
+        colors_to_process = color_to_id_map.items()
     
     # Iterate: unit_id is key (XXXXX), hex_color is value (#XXXXXX)
-    for unit_id, hex_color in color_to_id_map.items():
+    for unit_id, hex_color in colors_to_process:
         try:
             bgr = np.array(hex_to_bgr(hex_color), dtype=np.uint8)
             lower_bound, upper_bound = get_color_bounds(bgr, tolerance)

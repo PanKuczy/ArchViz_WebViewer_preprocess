@@ -29,6 +29,8 @@ def main():
     batch_parser.add_argument('-f', '--format', choices=['webp', 'avif'], default='webp',
                               help='Output format (default: webp)')
     batch_parser.add_argument('--remove-string', help='String to remove from output filenames')
+    batch_parser.add_argument('--auto-names', action='store_true',
+                              help='Recursively process RGB_color assets using asset names')
 
     args = parser.parse_args()
 
@@ -38,7 +40,8 @@ def main():
         
         elif args.command == 'batch':
             pipeline.process_batch(args.input_dir, args.output_dir, args.quality, 
-                                   args.format, args.remove_string)
+                                   args.format, args.remove_string,
+                                   auto_names=args.auto_names)
         
         return 0
     except Exception as e:

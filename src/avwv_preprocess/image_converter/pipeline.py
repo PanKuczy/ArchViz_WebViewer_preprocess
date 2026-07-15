@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from tqdm import tqdm
 from .processor import convert_image
+from ..core.asset_paths import asset_id, auto_name, find_asset_files
 from ..core.utils import play_bell
 
 
@@ -22,7 +23,7 @@ def process_single_image(input_path, output_path, quality=80, output_format='web
 
 
 def process_batch(input_dir, output_dir, quality=80, output_format='webp', 
-                  remove_string=None, input_patterns=None):
+                  remove_string=None, input_patterns=None, auto_names=False):
     """Processes a batch of images.
 
     Args:
@@ -34,6 +35,22 @@ def process_batch(input_dir, output_dir, quality=80, output_format='webp',
         input_patterns (list, optional): List of file patterns to search for. 
                                          Defaults to ['*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff'].
     """
+    if auto_names:
+        image_files = find_asset_files(input_dir, 'RGB_color')
+        os.makedirs(output_dir, exist_ok=True)
+        for image_file in tqdm(image_files, desc="Converting RGB assets"):
+            output_path = os.path.join(
+                output_dir, asset_id(image_file), 'rotator_frames',
+                auto_name(image_file, output_format),
+            )
+            try:
+                convert_image(str(image_file), output_path, quality, output_format)
+            except Exception as e:
+                print(f"✗ Failed to convert {image_file.name}: {e}")
+        print(f"\nBatch conversion complete: {len(image_files)} assets.")
+        play_bell()
+        return
+
     if input_patterns is None:
         input_patterns = ['*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff']
 

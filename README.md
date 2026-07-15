@@ -103,7 +103,7 @@ colors = extract_vray_colors_from_objectIDs.extract_from_single_image(
     "data/input/color_charts/vrayobjectid_colors-strip_1-2048.png",
     output_path="data/vrayobjid_colors_1-2048_map.json"
 )
-# Returns: {'0001': '#FF0000', '0002': '#00FF00', ...}
+# Returns: {'00001': '#FF0000', '0002': '#00FF00', ...}
 ```
 
 #### Batch - Separate Files
@@ -140,7 +140,7 @@ polygons = objID_to_polygon.extract_from_single_mask(
     epsilon=2.0,           # Polygon simplification
     tolerance=0            # Color matching tolerance
 )
-# Returns: {'0001': [[x1,y1], [x2,y2], ...], ...}
+# Returns: {'00001': [[x1,y1], [x2,y2], ...], ...}
 ```
 
 #### Batch - Separate Files
@@ -165,7 +165,7 @@ all_polygons = objID_to_polygon.extract_batch_merged(
     epsilon=2.0,
     tolerance=0
 )
-# Returns: {'frame_001': {'0001': [...], ...}, 'frame_002': {...}, ...}
+# Returns: {'0001': {'00001': [...], ...}, '0002': {...}, ...}
 ```
 
 ### 3. Convert Images to WebP/AVIF
@@ -205,9 +205,10 @@ python -m avwv_preprocess.cli.colors_from_vrayobjid single \
     -i 1
 
 python -m avwv_preprocess.cli.colors_from_vrayobjid single \
-    data/input/color_charts/vrayobjectid_colors-strip_65001-65535.png \
-    -o data/vrayobjid_colors_65001-65535_map.json \
-    -i 65001
+    data/input/color_charts/vrayobjectid_colors-chart_0-65535-1K.png \
+    -t chart \
+    -o data/vrayobjid_colors_all_map.json \
+    -i 0
 
 # Batch process separate
 python -m avwv_preprocess.cli.colors_from_vrayobjid batch \
@@ -329,30 +330,30 @@ polygons = extract_largest_polygon_per_color(
 ### Color Extraction Output
 ```json
 {
-  "0001": "#FF0000",
-  "0002": "#00FF00",
-  "0003": "#0000FF"
+  "00001": "#FF0000",
+  "00002": "#00FF00",
+  "00003": "#0000FF"
 }
 ```
 
 ### Polygon Extraction Output (Single)
 ```json
 {
-  "0001": [[x1, y1], [x2, y2], [x3, y3]],
-  "0002": [[x1, y1], [x2, y2], ...],
-  "0003": [[x1, y1], [x2, y2], [x3, y3]]
+  "00001": [[x1, y1], [x2, y2], [x3, y3]],
+  "00002": [[x1, y1], [x2, y2], ...],
+  "00003": [[x1, y1], [x2, y2], [x3, y3]]
 }
 ```
 
 ### Polygon Extraction Output (Merged by Frame)
 ```json
 {
-  "frame_001": {
-    "0001": [[x1, y1], [x2, y2], [x3, y3]],
-    "0002": [[x1, y1], ...],
+  "0001": {
+    "00001": [[x1, y1], [x2, y2], [x3, y3]],
+    "00002": [[x1, y1], ...],
   },
-  "frame_002": {
-    "0001": [[x1, y1], ...],
+  "0002": {
+    "00001": [[x1, y1], ...],
     ...
   }
 }
@@ -420,7 +421,7 @@ polygons = objID_to_polygon.extract_from_single_mask(
 )
 
 # From dict
-color_map = {"0001": "#FF0000", ...}
+color_map = {"00001": "#FF0000", ...}
 polygons = objID_to_polygon.extract_from_single_mask(
     mask_path, color_map
 )

@@ -17,12 +17,14 @@ def main():
     # Single image command
     single_parser = subparsers.add_parser('single', help='Process a single chart image')
     single_parser.add_argument('image', help='Path to the chart image')
+    single_parser.add_argument('-t', '--type', dest='chart_type', help='Type of chart: "chart" or "strip" (default: "chart")', default='chart')
     single_parser.add_argument('-o', '--output', help='Output JSON file path')
     single_parser.add_argument('-i', '--index', type=int, default=1, help='Starting index for object IDs (default: 1)')
     
     # Batch command
     batch_parser = subparsers.add_parser('batch', help='Batch process multiple chart images')
     batch_parser.add_argument('input_dir', help='Directory containing chart images')
+    batch_parser.add_argument('-t', '--type', dest='chart_type', help='Type of chart: "chart" or "strip" (default: "chart")', default='chart')
     batch_parser.add_argument('-o', '--output-dir', help='Output directory (default: input directory)')
     batch_parser.add_argument('-m', '--merge', action='store_true', help='Merge all outputs into single file')
     batch_parser.add_argument('--merge-output', help='Output path for merged file (used with --merge)')
@@ -37,7 +39,7 @@ def main():
         if args.command == 'single':
             print(f"Processing single image: {args.image}")
             colors = extract_vray_colors_from_objectIDs.extract_from_single_image(
-                args.image, args.output, args.index
+                args.image, args.chart_type, args.output, args.index
             )
             print(f"✓ Extracted {len(colors)} colors, starting from index {args.index}")
             return 0
@@ -49,14 +51,14 @@ def main():
                     return 1
                 print(f"Batch processing with merge: {args.input_dir} -> {args.merge_output}")
                 colors = extract_vray_colors_from_objectIDs.extract_batch_merged(
-                    args.input_dir, args.merge_output
+                    args.input_dir, args.merge_output, args.chart_type
                 )
                 print(f"✓ Merged {len(colors)} colors")
             else:
                 output_dir = args.output_dir or args.input_dir
                 print(f"Batch processing: {args.input_dir} -> {output_dir}")
                 results = extract_vray_colors_from_objectIDs.extract_batch_separate(
-                    args.input_dir, output_dir
+                    args.input_dir, output_dir, args.chart_type
                 )
                 print(f"✓ Processed {len(results)} images")
             return 0

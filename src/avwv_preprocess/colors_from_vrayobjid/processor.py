@@ -30,11 +30,15 @@ def extract_colors_from_chart(image_path, start_index=1):
     colors = {}
     index = start_index
     
-    # Each column represents one color
-    for x in range(img.width):
-        r, g, b = img.getpixel((x, 0))
-        colors[f"{index:05d}"] = rgb_to_hex(r, g, b)
-        index += 1
+    # Iterate through each pixel in the image from top-left to bottom-right
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b = img.getpixel((x, y))
+            color = rgb_to_hex(r, g, b)
+            if color in colors.values():
+                continue
+            colors[f"{index:05d}"] = color
+            index += 1
     
     return colors
 
@@ -62,13 +66,19 @@ def extract_colors_from_strip(image_path, orientation='horizontal', start_index=
         # Each column is a color
         for x in range(img.width):
             r, g, b = img.getpixel((x, 0))
-            colors[f"{index:05d}"] = rgb_to_hex(r, g, b)
+            color = rgb_to_hex(r, g, b)
+            if color in colors.values():
+                continue
+            colors[f"{index:05d}"] = color
             index += 1
     elif orientation == 'vertical':
         # Each row is a color
         for y in range(img.height):
             r, g, b = img.getpixel((0, y))
-            colors[f"{index:05d}"] = rgb_to_hex(r, g, b)
+            color = rgb_to_hex(r, g, b)
+            if color in colors.values():
+                continue
+            colors[f"{index:05d}"] = color
             index += 1
     else:
         raise ValueError(f"Unknown orientation: {orientation}. Use 'horizontal' or 'vertical'")

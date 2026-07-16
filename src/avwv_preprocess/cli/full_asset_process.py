@@ -27,6 +27,8 @@ def main():
                         help='Output format for RGB_color images')
     parser.add_argument('-c', '--color-map', type=Path,
                         help='Color map JSON for VRayObjectID polygons')
+    parser.add_argument('--cg-id-map', type=Path,
+                        help='Project ID to polygon ID JSON map')
     parser.add_argument('-q', '--quality', type=int, default=80,
                         help='Image compression quality (default: 80)')
     parser.add_argument('-e', '--epsilon', type=float, default=2.0)
@@ -45,7 +47,7 @@ def main():
         )
         objID_to_polygon.extract_batch_separate(
             input_path, str(color_map), args.output_path, args.epsilon,
-            args.tolerance, auto_names=True,
+            args.tolerance, auto_names=True, cg_id_map=args.cg_id_map,
         )
     except Exception as e:
         print(f'✗ Error: {e}', file=sys.stderr)

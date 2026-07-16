@@ -18,6 +18,8 @@ def main():
     single_parser = subparsers.add_parser('single', help='Process a single mask image')
     single_parser.add_argument('image', help='Path to the mask image')
     single_parser.add_argument('color_map', help='Path to color map JSON or dict')
+    single_parser.add_argument('--cg-id-map', type=Path,
+                              help='Path to project ID to polygon ID JSON map')
     single_parser.add_argument('-o', '--output', help='Output JSON file path')
     single_parser.add_argument('-e', '--epsilon', type=float, default=2.0,
                               help='Polygon approximation epsilon (default: 2.0)')
@@ -28,6 +30,8 @@ def main():
     batch_parser = subparsers.add_parser('batch', help='Batch process multiple mask images')
     batch_parser.add_argument('input_dir', help='Directory containing mask images')
     batch_parser.add_argument('color_map', help='Path to color map JSON')
+    batch_parser.add_argument('--cg-id-map', type=Path,
+                             help='Path to project ID to polygon ID JSON map')
     batch_parser.add_argument('-o', '--output-dir', help='Output directory (default: input directory)')
     batch_parser.add_argument('-m', '--merge', action='store_true', help='Merge all outputs into single file')
     batch_parser.add_argument('--merge-output', help='Output path for merged file (used with --merge)')
@@ -49,7 +53,8 @@ def main():
         if args.command == 'single':
             print(f"Processing single mask: {args.image}")
             polygons = objID_to_polygon.extract_from_single_mask(
-                args.image, args.color_map, args.output, args.epsilon, args.tolerance
+                args.image, args.color_map, args.output, args.epsilon, args.tolerance,
+                cg_id_map=args.cg_id_map,
             )
             print(f"✓ Extracted {len(polygons)} polygons")
             return 0
@@ -62,7 +67,8 @@ def main():
                 print(f"Batch processing with merge: {args.input_dir} -> {args.merge_output}")
                 polygons = objID_to_polygon.extract_batch_merged(
                     args.input_dir, args.color_map, args.merge_output, 
-                    args.epsilon, args.tolerance, remove_string=args.remove_string
+                    args.epsilon, args.tolerance, remove_string=args.remove_string,
+                    cg_id_map=args.cg_id_map,
                 )
                 print(f"✓ Processed and merged frames")
             else:
@@ -71,7 +77,7 @@ def main():
                 results = objID_to_polygon.extract_batch_separate(
                     args.input_dir, args.color_map, output_dir, 
                     args.epsilon, args.tolerance, remove_string=args.remove_string,
-                    auto_names=args.auto_names
+                    auto_names=args.auto_names, cg_id_map=args.cg_id_map
                 )
                 print(f"✓ Processed {len(results)} images")
             return 0

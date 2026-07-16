@@ -12,7 +12,29 @@ from ..core.utils import play_bell
 from .processor import extract_polygons_from_mask, extract_largest_polygon_per_color
 
 
-def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tolerance=0, largest_only=False):
+def _load_project_id_map(cg_id_map):
+    if cg_id_map is None:
+        return None
+    if isinstance(cg_id_map, (str, Path)):
+        cg_id_map = load_json(cg_id_map)
+    return {str(polygon_id): project_id for project_id, polygon_id in cg_id_map.items()}
+
+
+def _rename_polygon_ids(polygons, project_id_map):
+    if project_id_map is None:
+        return polygons
+
+    renamed = {}
+    for polygon_id, polygon in polygons.items():
+        polygon_id = str(polygon_id)
+        if polygon_id not in project_id_map:
+            raise KeyError(f'Polygon ID {polygon_id} is missing from the project ID map')
+        renamed[project_id_map[polygon_id]] = polygon
+    return renamed
+
+
+def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0,
+                        tolerance=0, largest_only=False, cg_id_map=None):
     """Process a single VRay object ID mask image
     
     Args:
@@ -22,6 +44,7 @@ def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tol
         epsilon: Polygon approximation epsilon (higher = simpler polygons)
         tolerance: Color tolerance for matching (0-255)
         largest_only: Extract only largest polygon per color
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Dictionary of extracted polygons
@@ -38,6 +61,8 @@ def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tol
         polygons = extract_largest_polygon_per_color(img, color_map, epsilon, tolerance)
     else:
         polygons = extract_polygons_from_mask(img, color_map, epsilon, tolerance)
+
+    polygons = _rename_polygon_ids(polygons, _load_project_id_map(cg_id_map))
     
     if output_path:
         save_json(polygons, output_path)
@@ -48,7 +73,7 @@ def process_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tol
 
 def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png', 
                   epsilon=2.0, tolerance=0, largest_only=False, remove_string=None,
-                  auto_names=False):
+                  auto_names=False, cg_id_map=None):
     """Batch process multiple VRay object ID mask images
     
     Args:
@@ -60,13 +85,14 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
         tolerance: Color tolerance for matching
         largest_only: Extract only largest polygon per color
         remove_string: String to remove from output filenames
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Dictionary mapping image filenames to their extracted polygons
     """
     if output_dir is None:
         output_dir = input_dir
-    
+
     os.makedirs(output_dir, exist_ok=True)
 
     if auto_names:
@@ -84,6 +110,7 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
             try:
                 results[image_file.name] = process_single_mask(
                     str(image_file), color_map, output_path, epsilon, tolerance,
+                    cg_id_map=cg_id_map,
                 )
             except Exception as e:
                 print(f"Error processing {image_file.name}: {e}")
@@ -119,7 +146,8 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
             
             # Process the image
             polygons = process_single_mask(
-                str(image_file), color_map, output_path, epsilon, tolerance, largest_only
+                str(image_file), color_map, output_path, epsilon, tolerance, largest_only,
+                cg_id_map=cg_id_map,
             )
             results[image_file.name] = polygons
             processed_count += 1
@@ -134,7 +162,8 @@ def process_batch(input_dir, color_map, output_dir=None, file_pattern='*.png',
 
 
 def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png',
-                         epsilon=2.0, tolerance=0, largest_only=False, remove_string=None):
+                         epsilon=2.0, tolerance=0, largest_only=False, remove_string=None,
+                         cg_id_map=None):
     """Batch process and merge results into a single JSON file
     
     Args:
@@ -146,6 +175,7 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
         tolerance: Color tolerance for matching
         largest_only: Extract only largest polygon per color
         remove_string: String to remove from the frame identifier (stem)
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Merged dictionary of all extracted polygons
@@ -153,7 +183,6 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
     # Load color map if it's a path
     if isinstance(color_map, str):
         color_map = load_json(color_map)
-    
     all_polygons = {}
     input_path = Path(input_dir)
     image_files = sorted(input_path.glob(file_pattern))
@@ -163,7 +192,8 @@ def process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png'
     for image_file in tqdm(image_files, desc="Merging masks"):
         try:
             polygons = process_single_mask(
-                str(image_file), color_map, None, epsilon, tolerance, largest_only
+                str(image_file), color_map, None, epsilon, tolerance, largest_only,
+                cg_id_map=cg_id_map,
             )
             # Merge with a frame identifier
             frame_id = image_file.stem

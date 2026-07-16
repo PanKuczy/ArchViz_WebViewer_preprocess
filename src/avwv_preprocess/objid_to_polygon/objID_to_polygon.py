@@ -6,7 +6,8 @@ from ..core.json_io import load_json
 from .pipeline import process_single_mask, process_batch, process_batch_merged
 
 
-def extract_from_single_mask(mask_path, color_map, output_path=None, epsilon=2.0, tolerance=0):
+def extract_from_single_mask(mask_path, color_map, output_path=None, epsilon=2.0,
+                             tolerance=0, cg_id_map=None):
     """Extract polygons from a single VRay mask image
     
     Args:
@@ -15,14 +16,20 @@ def extract_from_single_mask(mask_path, color_map, output_path=None, epsilon=2.0
         output_path: Optional path to save the JSON output
         epsilon: Polygon approximation epsilon (higher = simpler polygons)
         tolerance: Color tolerance for matching (0-255)
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Dictionary mapping object IDs to polygon point lists
     """
-    return process_single_mask(mask_path, color_map, output_path, epsilon, tolerance)
+    return process_single_mask(
+        mask_path, color_map, output_path, epsilon, tolerance,
+        cg_id_map=cg_id_map,
+    )
 
 
-def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, tolerance=0, remove_string=None, auto_names=False):
+def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0,
+                           tolerance=0, remove_string=None, auto_names=False,
+                           cg_id_map=None):
     """Extract polygons from multiple mask images, saving each as separate JSON
     
     Args:
@@ -32,16 +39,18 @@ def extract_batch_separate(input_dir, color_map, output_dir=None, epsilon=2.0, t
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
         remove_string: String to remove from output filenames
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Dictionary with results for each image
     """
     return process_batch(input_dir, color_map, output_dir, file_pattern='*.png', 
                         epsilon=epsilon, tolerance=tolerance, remove_string=remove_string,
-                        auto_names=auto_names)
+                        auto_names=auto_names, cg_id_map=cg_id_map)
 
 
-def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, tolerance=0, remove_string=None):
+def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0,
+                         tolerance=0, remove_string=None, cg_id_map=None):
     """Extract polygons from multiple images, merging into single JSON by frame
     
     Args:
@@ -51,12 +60,14 @@ def extract_batch_merged(input_dir, color_map, output_path, epsilon=2.0, toleran
         epsilon: Polygon approximation epsilon
         tolerance: Color tolerance for matching
         remove_string: String to remove from the frame identifier (stem)
+        cg_id_map: Dictionary or path mapping project IDs to polygon IDs
         
     Returns:
         Merged dictionary of all polygons organized by frame
     """
     return process_batch_merged(input_dir, color_map, output_path, file_pattern='*.png',
-                               epsilon=epsilon, tolerance=tolerance, remove_string=remove_string)
+                               epsilon=epsilon, tolerance=tolerance, remove_string=remove_string,
+                               cg_id_map=cg_id_map)
 
 
 # Example usage for direct execution

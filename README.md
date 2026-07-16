@@ -137,11 +137,13 @@ from avwv_preprocess.objid_to_polygon import objID_to_polygon
 polygons = objID_to_polygon.extract_from_single_mask(
     mask_path="data/input/masks/WebViewer_t1-1_0001.VRayObjectID.png",
     color_map="data/vrayobjid_colors_all_map.json",  # Can be path or dict
+    cg_id_map="data/input/cg-id-map.json",  # Optional project ID mapping
     output_path="data/output/polygons/WebViewer_t1-1_0001.json",
     epsilon=2.0,           # Polygon simplification
     tolerance=0            # Color matching tolerance
 )
-# Returns: {'00001': [[x1,y1], [x2,y2], ...], ...}
+# Returns project IDs when cg_id_map is provided:
+# {'rotator-a001': [[x1,y1], [x2,y2], ...], ...}
 ```
 
 #### Batch - Separate Files
@@ -152,7 +154,8 @@ results = objID_to_polygon.extract_batch_separate(
     color_map="data/vrayobjid_colors_all_map.json",
     output_dir="polygons_output/",
     epsilon=2.0,
-    tolerance=0
+    tolerance=0,
+    cg_id_map="data/input/cg-id-map.json"
 )
 ```
 
@@ -164,10 +167,23 @@ all_polygons = objID_to_polygon.extract_batch_merged(
     color_map="data/vrayobjid_colors_all_map.json",
     output_path="all_frames.json",
     epsilon=2.0,
-    tolerance=0
+    tolerance=0,
+    cg_id_map="data/input/cg-id-map.json"
 )
-# Returns: {'0001': {'00001': [...], ...}, '0002': {...}, ...}
+# Returns: {'0001': {'rotator-a001': [...], ...}, '0002': {...}, ...}
 ```
+
+The polygon API functions accept the optional `cg_id_map` argument:
+
+- `extract_from_single_mask(..., cg_id_map=None)` processes one mask.
+- `extract_batch_separate(..., cg_id_map=None)` writes one JSON file per mask.
+- `extract_batch_merged(..., cg_id_map=None)` writes all frames to one JSON file.
+
+`cg_id_map` can be a JSON path or a dictionary in the format
+`{project_id: polygon_id}`. The color map uses polygon IDs as its keys, so the
+pipeline reverses this mapping when writing polygon results. If `cg_id_map` is
+omitted, the original polygon IDs are preserved. Every extracted polygon ID
+must have a corresponding entry in the supplied map.
 
 ### 3. Convert Images to WebP/AVIF
 
@@ -228,14 +244,16 @@ python -m avwv_preprocess.cli.colors_from_vrayobjid batch \
 # Process single mask
 python -m avwv_preprocess.cli.objid_to_polygon_cli single \
     data/input/masks/WebViewer_t1-1_0001.VRayObjectID.png \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/polygons/WebViewer_t1-1_0001.json \
     --epsilon 2.0 \
     --tolerance 0
 
 python -m avwv_preprocess.cli.objid_to_polygon_cli single \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\VRayObjectID\WebViewer_t1-1_0003.VRayObjectID.png" \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/polygons/polygons.json \
     --epsilon 2.0 \
     --tolerance 0
@@ -243,30 +261,45 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli single \
 # Batch process separate
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/input/masks/ \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/polygons/ \
     --remove-string ".VRayObjectID"
 
-# Batch process separate
+# Batch process separate with auto names
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\test" \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/polygons/v4_test \
     --auto-names
 
-# Batch process separate with auto names
+# Batch process separate
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\test\VRayObjectID" \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/polygons/v3 \
     --remove-string "_vrayoutput_.VRayObjectID."
 
 # Batch process with merge
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/input/masks/ \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -m --merge-output data/output/polygons/all_frames.json \
     --remove-string ".VRayObjectID"
+```
+
+Use `--cg-id-map PATH` with either the `single` or `batch` command to replace
+polygon IDs in the output with project IDs. The JSON file must use the format
+`{project_id: polygon_id}`, for example:
+
+```json
+{
+    "rotator-a001": "10001",
+    "rotator-building-a": "00101"
+}
 ```
 
 ### Image Converter
@@ -298,7 +331,8 @@ The `full_asset_process` command processes an asset tree in one run. It searches
 recursively for image files based on their immediate parent folder:
 
 - `RGB_color` images are converted to the selected image format.
-- `VRayObjectID` images are converted to polygon JSON files using the color map.
+- `VRayObjectID` images are converted to polygon JSON files using the color map
+    and optional project ID map.
 
 For each input filename, the asset ID is the text before the first `_` and the
 frame number is the final four digits. Output files use the format
@@ -314,8 +348,12 @@ frame number is the final four digits. Output files use the format
 ```
 
 The color map can be supplied with `--color-map`. When omitted, the command
-looks for `vrayobjid_colors_all_map.json` in the input directory, its parent
+looks for `data/vrayobjid_colors_1-65535_map.json` in the input directory, its parent
 directory, and `data/` in the current working directory.
+
+The optional `--cg-id-map PATH` argument uses the same
+`{project_id: polygon_id}` mapping and writes project IDs as the polygon JSON
+keys.
 
 The existing batch commands also support automatic naming with `--auto-names`:
 
@@ -328,7 +366,8 @@ python -m avwv_preprocess.cli.image_converter_cli batch \
 
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     data/input/ \
-    data/vrayobjid_colors_all_map.json \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
     -o data/output/ \
     --auto-names
 
@@ -337,7 +376,8 @@ python -m avwv_preprocess.cli.full_asset_process \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\v4" \
     data/output/v4 \
     webp \
-    --color-map data/vrayobjid_colors_all_map.json
+    --color-map data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json
 ```
 
 ## Advanced Configuration
@@ -397,21 +437,23 @@ polygons = extract_largest_polygon_per_color(
 ### Polygon Extraction Output (Single)
 ```json
 {
-  "00001": [[x1, y1], [x2, y2], [x3, y3]],
-  "00002": [[x1, y1], [x2, y2], ...],
-  "00003": [[x1, y1], [x2, y2], [x3, y3]]
+    "rotator-a001": [[x1, y1], [x2, y2], [x3, y3]],
+    "rotator-a002": [[x1, y1], [x2, y2], ...],
+    "rotator-building-a": [[x1, y1], [x2, y2], [x3, y3]]
 }
 ```
+
+Without `cg_id_map`, these keys remain the polygon IDs from the color map.
 
 ### Polygon Extraction Output (Merged by Frame)
 ```json
 {
   "0001": {
-    "00001": [[x1, y1], [x2, y2], [x3, y3]],
-    "00002": [[x1, y1], ...],
+        "rotator-a001": [[x1, y1], [x2, y2], [x3, y3]],
+        "rotator-a002": [[x1, y1], ...],
   },
   "0002": {
-    "00001": [[x1, y1], ...],
+        "rotator-a001": [[x1, y1], ...],
     ...
   }
 }

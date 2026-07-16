@@ -266,12 +266,20 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     -o data/output/polygons/ \
     --remove-string ".VRayObjectID"
 
-# Batch process separate with auto names
+# Batch process separate with auto names TEST
 python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
     "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\test" \
     data/vrayobjid_colors_1-65535_map.json \
     --cg-id-map data/input/cg-id-map.json \
-    -o data/output/polygons/v4_test \
+    -o data/output/test \
+    --auto-names
+
+# Batch process separate with auto names
+python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\v4" \
+    data/vrayobjid_colors_1-65535_map.json \
+    --cg-id-map data/input/cg-id-map.json \
+    -o data/output/v4 \
     --auto-names
 
 # Batch process separate

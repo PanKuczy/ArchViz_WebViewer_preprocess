@@ -14,6 +14,10 @@ The project is organized into four main components:
 ## Folder Structure
 
 ```
+maxscript_tools/
+├── PBD_object_g-buff_mapping.ms              # Object G-buffer mapping tool
+└── PBD_object_viewport_position_extract.ms   # Viewport object position extraction tool
+
 src/avwv_preprocess/
 ├── core/
 │   ├── utils.py          # Color conversion utilities
@@ -381,8 +385,8 @@ python -m avwv_preprocess.cli.objid_to_polygon_cli batch \
 
 # Recursively convert RGB_color assets and extract VRayObjectID polygons
 python -m avwv_preprocess.cli.full_asset_process \
-    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\v4" \
-    data/output/v4 \
+    "Z:\!Projekty\!Image\!R&D\Web viewer rotator\WebViewer scena testowa1\render\v5" \
+    data/output/v5 \
     webp \
     --color-map data/vrayobjid_colors_1-65535_map.json \
     --cg-id-map data/input/cg-id-map.json
